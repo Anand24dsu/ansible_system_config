@@ -1,4 +1,3 @@
----
 - name: Ensure yugabyte_home directory exists
   file:
     path: "{{ yugabyte_home }}"
@@ -27,7 +26,7 @@
 - name: Run post-installation script if exists
   command: "{{ yugabyte_post_install_script }}"
   args:
-    chdir: "{{ yugabyte_home }}"
+    chdir: "{{ yugabyte_extract_dir }}"
   when: post_install_check.stat.exists
 
 - name: Check if YugabyteDB is running
@@ -35,7 +34,7 @@
   register: yugabyted_pid
   ignore_errors: true
 
-- name: Fix permissions for openssl-config and install YugabyteDB if not present
+- name: Install YugabyteDB if not present
   block:
 
     - name: Check if YugabyteDB is already installed
@@ -45,23 +44,29 @@
 
     - name: Download YugabyteDB tarball if not present
       get_url:
-        url: "https://software.yugabyte.com/releases/2024.2.2.1/yugabyte-2024.2.2.1-b6-linux-x86_64.tar.gz"
-        dest: "yugabyte-2024.2.2.1-b6-linux-x86_64.tar.gz"
+        url: "https://software.yugabyte.com/releases/{{ yugabyte_version }}/{{ yugabyte_tarball }}"
+        dest: "{{ yugabyte_home }}/{{ yugabyte_tarball }}"
         mode: '0644'
       when: not yugabyte_installed.stat.exists
 
     - name: Extract YugabyteDB tarball
       unarchive:
-        src: "yugabyte-2024.2.2.1-b6-linux-x86_64.tar.gz"
+        src: "{{ yugabyte_home }}/{{ yugabyte_tarball }}"
         dest: "{{ yugabyte_home }}"
         remote_src: yes
         owner: "{{ userId }}"
         group: "{{ groupId }}"
       when: not yugabyte_installed.stat.exists
 
+    - name: Remove YugabyteDB tarball after extraction
+      file:
+        path: "{{ yugabyte_home }}/{{ yugabyte_tarball }}"
+        state: absent
+      when: not yugabyte_installed.stat.exists
+
     - name: Fix permissions for openssl-config
       file:
-        path: "{{ yugabyte_home }}/openssl-config"
+        path: "{{ yugabyte_extract_dir }}/openssl-config"
         owner: "{{ userId }}"
         group: "{{ groupId }}"
         mode: "u+w"
@@ -70,7 +75,7 @@
 - name: Start YugabyteDB service if not running
   command: "{{ yugabyte_bin }}/yugabyted start"
   args:
-    chdir: "{{ yugabyte_home }}"
+    chdir: "{{ yugabyte_extract_dir }}"
   when: yugabyted_pid.rc != 0
 
 - name: Check YugabyteDB service status

@@ -7,4 +7,6 @@
 
 - name: Rebuild GRUB configuration
   command: update-grub
-
+# Add handler for systemd reload
+- name: Reload systemd
+  command: systemctl daemon-reload

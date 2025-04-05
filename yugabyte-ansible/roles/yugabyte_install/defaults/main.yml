@@ -1,9 +1,10 @@
 userId: "Yugabyte"
 groupId: "YugabyteGroup"
-
-yugabyte_home: "/home/Yugabyte/yugabyte-2024.2.2.1"
-yugabyte_bin: "/home/Yugabyte/yugabyte-2024.2.2.1/bin"
-yugabyte_service_file: "/etc/systemd/system/yugabyte.service"
-yugabyte_exec_start: "/home/Yugabyte/yugabyte-2024.2.2.1/bin/yb-ctl start"
-yugabyte_exec_stop: "/home/Yugabyte/yugabyte-2024.2.2.1/bin/yb-ctl stop"
-yugabyte_post_install_script: "/home/Yugabyte/yugabyte-2024.2.2.1/post_install.sh"
+yugabyte_home: /home/Yugabyte
+yugabyte_version: 2024.2.2.1
+yugabyte_build: b6
+yugabyte_tarball: "yugabyte-{{ yugabyte_version }}-{{ yugabyte_build }}-linux-x86_64.tar.gz"
+yugabyte_extract_dir: "{{ yugabyte_home }}/yugabyte-{{ yugabyte_version }}"
+yugabyte_bin: "{{ yugabyte_extract_dir }}/bin"
+yugabyte_service_file: /etc/systemd/system/yugabytedb.service
+yugabyte_post_install_script: "{{ yugabyte_extract_dir }}/bin/post_install.sh"
