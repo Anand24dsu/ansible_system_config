@@ -1,0 +1,76 @@
+---
+- name: Create user group
+  group:
+    name: "{{ groupId }}"
+    system: yes
+
+- name: Create yugabyte user
+  user:
+    name: "{{ userId }}"
+    group: "{{ groupId }}"
+    system: yes
+    shell: /bin/bash
+    comment: "{{ userId }} system user"
+    password: "{{ 'yugabyte' | password_hash('sha512') }}"
+    create_home: yes
+    state: present
+
+- name: Add yugabyte user to sudoers
+  copy:
+    dest: /etc/sudoers.d/yugabyte
+    content: "{{ userId }} ALL=(ALL) NOPASSWD:ALL\n"
+    owner: root
+    group: root
+    mode: '0440'
+
+- name: Set system ulimits
+  lineinfile:
+    path: /etc/security/limits.conf
+    line: "{{ item }}"
+    create: yes
+  loop:
+    - "{{ userId }} soft nofile 1048576"
+    - "{{ userId }} hard nofile 1048576"
+    - "{{ userId }} soft nproc 12000"
+    - "{{ userId }} hard nproc 12000"
+    - "{{ userId }} soft stack 8192"
+    - "{{ userId }} hard stack 8192"
+    - "{{ userId }} soft memlock 64"
+    - "{{ userId }} hard memlock 64"
+    - "{{ userId }} soft cpu unlimited"
+    - "{{ userId }} hard cpu unlimited"
+    - "{{ userId }} soft fsize unlimited"
+    - "{{ userId }} hard fsize unlimited"
+    - "{{ userId }} soft data unlimited"
+    - "{{ userId }} hard data unlimited"
+    - "{{ userId }} soft rss unlimited"
+    - "{{ userId }} hard rss unlimited"
+    - "{{ userId }} soft vmem unlimited"
+    - "{{ userId }} hard vmem unlimited"
+    - "{{ userId }} soft msgqueue 819200"
+    - "{{ userId }} hard msgqueue 819200"
+    - "{{ userId }} soft locks unlimited"
+    - "{{ userId }} hard locks unlimited"
+    - "{{ userId }} soft core unlimited"
+    - "{{ userId }} hard core unlimited"
+    - "{{ userId }} soft sigpending 119934"
+    - "{{ userId }} hard sigpending 119934"
+  notify: Reload systemd
+
+- name: Configure kernel parameters
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  loop:
+    - { key: "vm.swappiness", value: "0" }
+    - { key: "kernel.core_pattern", value: "/home/{{ userId }}/cores/core_%p_%t_%E" }
+    - { key: "vm.max_map_count", value: "262144" }
+
+- name: Ensure transparent hugepages are disabled in GRUB
+  lineinfile:
+    path: "{{ grub_config_file }}"
+    line: "{{ grub_line }}"
+    state: present
+  notify: Rebuild GRUB configuration

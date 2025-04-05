@@ -1,0 +1,5 @@
+---
+userId: "Yugabyte"
+groupId: "Yugabyte"
+grub_config_file: "/etc/default/grub"
+grub_line: 'GRUB_CMDLINE_LINUX_DEFAULT="transparent_hugepage=never"'

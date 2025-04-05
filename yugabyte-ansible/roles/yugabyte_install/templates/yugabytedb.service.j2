@@ -1,0 +1,25 @@
+[Unit]
+Description=YugabyteDB service
+After=network.target
+
+[Service]
+ExecStart={{ yugabyte_exec_start }}
+User={{ userId }}
+Group={{ groupId }}
+Restart=always
+LimitNOFILE=1048576
+LimitNPROC=12000
+LimitSTACK=8192
+LimitMEMLOCK=64
+LimitCPU=infinity
+LimitFSIZE=infinity
+LimitDATA=infinity
+LimitRSS=infinity
+LimitVMEM=infinity
+LimitMSGQUEUE=819200
+LimitLOCKS=infinity
+LimitCORE=infinity
+LimitSIGPENDING=119934
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,10 @@
+---
+- name: YugabyteDB Installation Playbook
+  hosts: yugabyteCloud
+  become: true
+
+  roles:
+    - role: common
+    - role: system_config
+    - role: yugabyte_install
+

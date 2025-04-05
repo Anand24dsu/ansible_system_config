@@ -1,0 +1,10 @@
+---
+- name: Reload systemd
+  command: systemctl daemon-reexec
+
+- name: Reload sysctl
+  command: sysctl -p
+
+- name: Rebuild GRUB configuration
+  command: update-grub
+
